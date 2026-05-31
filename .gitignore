@@ -1,0 +1,46 @@
+# Конфигурация с чувствительными данными (токены, пароли)
+config/settings_local.json
+config/secrets.json
+
+# База данных SQLite
+*.db
+*.sqlite
+*.sqlite3
+
+# Логи
+logs/*.log
+logs/*.log.*
+
+# Виртуальное окружение Python
+venv/
+.venv/
+env/
+.env
+
+# Кэш и скомпилированные файлы
+__pycache__/
+*.py[cod]
+*.pyo
+*.egg-info/
+dist/
+build/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# ОС
+.DS_Store
+Thumbs.db
+
+# Файлы окружения
+.env
+.env.local
+
+# Дистрибутивы
+*.exe
+*.msi
+*.dmg
+*.pkg

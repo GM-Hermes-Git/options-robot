@@ -1,0 +1,23 @@
+# Ядро
+numpy>=1.26,<2.0
+scipy>=1.11,<2.0
+
+# HTTP и WebSocket
+aiohttp>=3.9,<4.0
+websockets>=12.0
+
+# GUI
+PyQt6>=6.6
+qasync>=0.27
+
+# Telegram
+python-telegram-bot>=20.0
+
+# База данных
+aiosqlite>=0.19
+
+# Шифрование
+cryptography>=41.0
+
+# Утилиты
+python-dateutil>=2.8

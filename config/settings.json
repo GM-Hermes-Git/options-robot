@@ -1,0 +1,92 @@
+{
+    "_comment": "Основной конфигурационный файл. Секреты (токены) — в settings_local.json (в .gitignore)",
+
+    "app": {
+        "name": "Options Robot",
+        "version": "0.1.0",
+        "language": "ru"
+    },
+
+    "providers": {
+        "active": "moex",
+        "moex": {
+            "base_url": "https://iss.moex.com/iss",
+            "request_timeout": 10,
+            "reconnect_delay_initial": 1,
+            "reconnect_delay_max": 60,
+            "reconnect_backoff": 2.0
+        },
+        "alor": {
+            "base_url_rest": "https://api.alor.ru",
+            "base_url_ws": "wss://api.alor.ru/ws",
+            "base_url_rest_demo": "https://apidev.alor.ru",
+            "base_url_ws_demo": "wss://apidev.alor.ru/ws",
+            "token_refresh_interval": 3600,
+            "request_timeout": 10,
+            "reconnect_delay_initial": 1,
+            "reconnect_delay_max": 60,
+            "reconnect_backoff": 2.0
+        }
+    },
+
+    "trading": {
+        "mode": "demo",
+        "modes_available": ["moex_simulation", "alor_demo", "alor_production"],
+        "risk_free_rate": 0.085,
+        "default_volatility": 0.30,
+        "lot_size_default": 1
+    },
+
+    "gui": {
+        "theme": "dark",
+        "window_title": "Options Robot",
+        "window_width": 1400,
+        "window_height": 900,
+        "font_family": "Segoe UI",
+        "font_size": 10
+    },
+
+    "database": {
+        "filename": "robot_data.db",
+        "backup_enabled": true,
+        "backup_interval_hours": 24
+    },
+
+    "logging": {
+        "level": "INFO",
+        "levels_available": ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"],
+        "log_dir": "logs",
+        "max_file_size_mb": 10,
+        "backup_count": 30,
+        "format": "[%(asctime)s] [%(levelname)-8s] [%(name)s] %(message)s",
+        "date_format": "%Y-%m-%d %H:%M:%S"
+    },
+
+    "telegram": {
+        "enabled": false,
+        "events": {
+            "trigger_fired": true,
+            "trigger_deactivated": true,
+            "order_placed": true,
+            "order_filled": true,
+            "order_partial_fill": true,
+            "hedge_executed": true,
+            "stop_loss_triggered": true,
+            "take_profit_triggered": true,
+            "position_closed": true,
+            "max_contracts_warning": true,
+            "strategy_stopped_by_time": true,
+            "connection_error": true,
+            "critical_error": true
+        }
+    },
+
+    "strategies": {
+        "max_active_strategies": 10,
+        "config_dir": "config/strategies",
+        "default_hedge_step_points": 10,
+        "default_trigger_deactivation_threshold": 100,
+        "default_sl_percent": 50.0,
+        "default_tp_percent": 100.0
+    }
+}
