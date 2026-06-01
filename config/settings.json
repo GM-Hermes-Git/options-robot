@@ -30,7 +30,7 @@
     },
 
     "trading": {
-        "mode": "demo",
+        "mode": "moex_simulation",
         "modes_available": ["moex_simulation", "alor_demo", "alor_production"],
         "risk_free_rate": 0.085,
         "default_volatility": 0.30,

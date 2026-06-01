@@ -39,6 +39,9 @@ Thumbs.db
 .env
 .env.local
 
+# Hermes Agent
+.hermes/
+
 # Дистрибутивы
 *.exe
 *.msi

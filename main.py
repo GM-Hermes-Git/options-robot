@@ -44,6 +44,7 @@ from core.trigger_engine import TriggerEngine
 from core.order_manager import OrderManager
 from core.delta_hedger import DeltaHedger
 from core.risk_manager import RiskManager
+from database.db_manager import DatabaseManager
 from gui.main_window import MainWindow
 from utils.logger import setup_logging, get_logger
 
@@ -177,14 +178,18 @@ class Application:
         self.data_provider = None
         self.order_provider = None
 
-        # 7. Менеджеры (заглушки на Этапе 1)
-        self.strategy_manager = StrategyManager(self.event_bus, self.config)
-        self.trigger_engine = TriggerEngine(self.event_bus, self.config)
-        self.order_manager = OrderManager(self.event_bus, self.config)
+        # 7. База данных (единая для всего приложения)
+        db_filename = self.config.get("database", {}).get("filename", "robot_data.db")
+        self.db_manager = DatabaseManager(db_path=db_filename)
+
+        # 8. Менеджеры (инициализируются в setup_managers после провайдеров)
+        self.strategy_manager = None
+        self.trigger_engine = None
+        self.order_manager = None
         self.delta_hedger = DeltaHedger(self.event_bus, self.config)
         self.risk_manager = RiskManager(self.event_bus, self.config)
 
-        # 8. GUI (None в консольном режиме)
+        # 9. GUI (None в консольном режиме)
         self.qt_app = None
         self.main_window = None
 
@@ -217,15 +222,53 @@ class Application:
             type(self.order_provider).__name__,
         )
 
+        # Создаём менеджеры после провайдеров (нужны провайдеры для зависимостей)
+        self.setup_managers()
+
+    def setup_managers(self) -> None:
+        """
+        Создать менеджеры стратегий, триггеров и ордеров.
+
+        Должен вызываться после setup_providers(), так как
+        TriggerEngine и OrderManager требуют data_provider/order_provider.
+        """
+        self.logger.info("Инициализация менеджеров Этапа 2...")
+
+        self.strategy_manager = StrategyManager(
+            self.event_bus, self.db_manager, self.config,
+        )
+        self.trigger_engine = TriggerEngine(
+            self.event_bus, self.data_provider, self.config,
+        )
+        self.order_manager = OrderManager(
+            self.event_bus, self.order_provider, self.data_provider,
+            self.greeks_engine, self.config,
+        )
+
+        self.logger.info(
+            "Менеджеры готовы: StrategyManager, TriggerEngine, OrderManager"
+        )
+
     async def start(self) -> None:
         """
         Запустить приложение.
 
-        1. Подключить провайдеры.
-        2. Запустить GUI (или консольный режим).
-        3. Войти в главный цикл обработки событий.
+        1. Инициализировать БД.
+        2. Подключить провайдеры.
+        3. Инициализировать StrategyManager (загрузка стратегий из БД).
+        4. Запустить GUI (или консольный режим).
         """
         self.logger.info("Запуск приложения...")
+
+        # Инициализируем базу данных
+        await self.db_manager.initialize()
+        self.logger.info("База данных инициализирована: %s", self.db_manager._db_path)
+
+        # Загружаем стратегии из БД
+        if self.strategy_manager:
+            await self.strategy_manager.initialize()
+            total = len(self.strategy_manager.get_all_strategies())
+            self.logger.info("Загружено стратегий из БД: %d", total)
 
         # Подключаем провайдеры
         if self.data_provider:
@@ -274,11 +317,19 @@ class Application:
             source="Application",
         )
 
+        # Останавливаем TriggerEngine (фоновый поллинг)
+        if self.trigger_engine:
+            await self.trigger_engine.stop()
+
         # Отключаем провайдеры
         if self.data_provider:
             await self.data_provider.disconnect()
         if self.order_provider:
             await self.order_provider.disconnect()
+
+        # Закрываем базу данных
+        if self.db_manager:
+            await self.db_manager.close()
 
         self.logger.info("Приложение остановлено")
 
@@ -318,6 +369,10 @@ def setup_gui(app_instance: Application) -> None:
 
     # Обновляем статус в GUI
     main_window.update_mode_status(app_instance.mode)
+
+    # Передаём менеджер стратегий во вкладку Стратегии
+    if app_instance.strategy_manager:
+        main_window.set_strategy_manager(app_instance.strategy_manager)
 
 
 async def run_gui(app_instance: Application) -> None:

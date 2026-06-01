@@ -39,6 +39,9 @@ from PyQt6.QtWidgets import (
 )
 
 from core.event_bus import EventBus, EventType
+from gui.widgets.strategy_tab import StrategyTab
+from gui.widgets.orders_tab import OrdersTab
+from gui.widgets.log_tab import LogTab
 
 logger = logging.getLogger(__name__)
 
@@ -98,10 +101,10 @@ class MainWindow(QMainWindow):
         # Создаём вкладки
         self._tab_connection = ConnectionTab(self._event_bus, self._config)
         self._tab_quotes = QuotesTab(self._config)
-        self._tab_strategies = PlaceholderTab("Стратегии", "Управление стратегиями будет доступно на Этапе 2")
+        self._tab_strategies = StrategyTab(self._event_bus)
         self._tab_positions = PlaceholderTab("Позиции", "Монитор позиций будет доступен на Этапе 2")
-        self._tab_orders = PlaceholderTab("Ордера", "Таблица активных ордеров будет доступна на Этапе 2")
-        self._tab_log = PlaceholderTab("Лог", "Лог событий будет доступен на Этапе 1")
+        self._tab_orders = OrdersTab(self._event_bus)
+        self._tab_log = LogTab(self._event_bus)
         self._tab_history = PlaceholderTab("История", "История сделок будет доступна на Этапе 5")
         self._tab_settings = PlaceholderTab("Настройки", "Настройки приложения")
 
@@ -299,6 +302,18 @@ class MainWindow(QMainWindow):
         """
         self._order_provider = order_provider
         self._tab_connection.set_order_provider(order_provider)
+        self._tab_orders.set_order_provider(order_provider)
+
+    def set_strategy_manager(self, manager) -> None:
+        """
+        Установить менеджер стратегий.
+
+        Проксирует в StrategyTab для отображения списка стратегий.
+
+        Args:
+            manager: Экземпляр StrategyManager.
+        """
+        self._tab_strategies.set_strategy_manager(manager)
 
     def update_provider_status(self, provider_name: str, connected: bool) -> None:
         """
